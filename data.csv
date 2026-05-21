@@ -1,0 +1,11 @@
+id,description,color,size,price,stock
+1,T-shirt,red,S,9.99,50
+2,T-shirt,red,M,9.99,40
+3,T-shirt,blue,M,9.99,30
+4,T-shirt,blue,L,9.99,20
+5,Hoodie,black,S,34.99,15
+6,Hoodie,black,M,34.99,25
+7,Hoodie,grey,L,34.99,10
+8,Jeans,blue,S,49.99,20
+9,Jeans,blue,M,49.99,35
+10,Jeans,black,L,49.99,15

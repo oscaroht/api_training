@@ -1,8 +1,5 @@
-import uuid
 from pydantic import BaseModel
-# from enums import OrderStatus
 from datetime import datetime, date
-
 
 from enum import StrEnum, auto
 
@@ -11,6 +8,7 @@ class OrderStatus(StrEnum):
     PENDING = auto()
     PAYED = auto()
     PROCESSING = auto()
+    SHIPPED = auto()
     DELIVERED = auto()
 
 class OrderItems(BaseModel):
@@ -31,3 +29,6 @@ class CreditCardPayment(BaseModel):
     name: str
     number: int
     valid_thru: date
+
+class StatusResponse(BaseModel):
+    status: str
