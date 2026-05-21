@@ -39,9 +39,11 @@ def insert_order(order: Order):
     query(stmt, order.model_dump())
     for item in order.items:
         print(item.model_dump())
-        stmt = "INSERT INTO order_items (order_id, product_id, quantity) VALUES (:id, :product_id, :quantity)"
+        stmt = "INSERT INTO order_items (order_id, product_id, quantity) VALUES (:order_id, :product_id, :quantity)"
         print(stmt)
-        query(stmt, item.model_dump().update({'id': order.id}))
+        params = item.model_dump()
+        params['order_id'] = order.id
+        query(stmt, params)
 
 def select_order(order_id: int):
     raise NotImplementedError("")
