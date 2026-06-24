@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 from fastapi import FastAPI, HTTPException
-from models import Order, OrderRequest, CreditCardPayment, OrderStatus, StatusResponse
+from models import Order, OrderRequest, CreditCardPayment, OrderStatus, StatusResponse, StatusUpdate
 from db import db_init, insert_order, select_order, update_order_status
 import uuid
 import requests
@@ -13,13 +13,13 @@ WAREHOUSE_BASE_URL = 'http://127.0.0.1:8002'
 db_init()
 
 
-@app.post("/order", response_model=Order)
+@app.post("/orders", response_model=Order)
 def create_order(order_request: OrderRequest):
     """User initiates order"""
     order_id = str(uuid.uuid4())
     total_price = 0.0
     for item in order_request.items:
-        r = requests.get(CATALOG_BASE_URL + '/product', params={'id': item.product_id})
+        r = requests.get(CATALOG_BASE_URL + f'/products/{item.product_id}')
         r.raise_for_status()
         total_price += float(r.json()['price']) * item.quantity
 
@@ -29,7 +29,7 @@ def create_order(order_request: OrderRequest):
     return order
 
 
-@app.get("/order", response_model=Order)
+@app.get("/orders/{order_id}", response_model=Order)
 def get_order(order_id: str):
     """User or other microservices can get an order by id"""
     order = select_order(order_id)
@@ -38,14 +38,14 @@ def get_order(order_id: str):
     return order
 
 
-@app.put("/order_status", response_model=StatusResponse)
-def update_status(order_id: str, status: OrderStatus):
+@app.patch("/orders/{order_id}", response_model=StatusResponse)
+def update_status(order_id: str, update: StatusUpdate):
     """Allows other microservices to alter the status."""
-    update_order_status(order_id, status)
-    return StatusResponse(status=status)
+    update_order_status(order_id, update.status)
+    return StatusResponse(status=update.status)
 
 
-@app.post("/payment/", response_model=StatusResponse)
+@app.post("/orders/{order_id}/payment", response_model=StatusResponse)
 def pay(order_id: str, payment: CreditCardPayment):
     """Pay and decrease stock in the warehouse"""
     order = select_order(order_id)
@@ -55,8 +55,8 @@ def pay(order_id: str, payment: CreditCardPayment):
     update_order_status(order_id, OrderStatus.PAYED)
 
     for item in order['items']:
-        requests.put(WAREHOUSE_BASE_URL + '/decrease_stock',
-                     params={'product_id': item['product_id'], 'quantity': item['quantity']})
+        requests.patch(WAREHOUSE_BASE_URL + f"/products/{item['product_id']}/stock",
+                       json={'quantity': item['quantity']})
 
-    requests.put(WAREHOUSE_BASE_URL + '/ship', params={'order_id': order_id})
+    requests.post(WAREHOUSE_BASE_URL + '/shipments', json={'order_id': order_id})
     return StatusResponse(status="payed")

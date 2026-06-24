@@ -30,5 +30,8 @@ class CreditCardPayment(BaseModel):
     number: int
     valid_thru: date
 
+class StatusUpdate(BaseModel):
+    status: OrderStatus
+
 class StatusResponse(BaseModel):
     status: str

@@ -7,3 +7,7 @@ class Product(BaseModel):
     color: str
     size: str
     price: float
+
+
+class ProductDetail(Product):
+    stock: int
